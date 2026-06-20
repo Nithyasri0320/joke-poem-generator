@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JokePen – Laugh & Verse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #1a1a2e;
+      --paper: #f7f4ef;
+      --cream: #eee8dd;
+      --gold: #e8a838;
+      --violet: #7c5cbf;
+      --rose: #e05c7a;
+      --mint: #3dbfa0;
+      --card: #ffffff;
+      --border: #ddd8ce;
+      --muted: #7a7468;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--ink);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem;
+      color: var(--gold);
+      letter-spacing: -0.5px;
+    }
+
+    .logo span { color: #fff; font-style: italic; }
+
+    .tagline {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: #6b6880;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      gap: 0;
+      background: var(--cream);
+      border-bottom: 2px solid var(--border);
+    }
+
+    .tab {
+      flex: 1;
+      padding: 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--muted);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .tab:hover { color: var(--ink); background: rgba(0,0,0,0.03); }
+    .tab.active { color: var(--ink); border-bottom-color: var(--gold); }
+    .tab.joke.active { border-bottom-color: var(--rose); }
+    .tab.poem.active { border-bottom-color: var(--violet); }
+
+    /* ── Main ── */
+    main { max-width: 760px; margin: 0 auto; padding: 36px 24px; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+
+    .card-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .joke .card-label { color: var(--rose); }
+    .poem .card-label { color: var(--violet); }
+
+    /* ── Controls ── */
+    .field { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #444;
+    }
+
+    input[type="text"], textarea, select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.92rem;
+      background: var(--paper);
+      color: var(--ink);
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    input[type="text"]:focus, textarea:focus, select:focus {
+      border-color: var(--gold);
+    }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* ── Chips ── */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .chip {
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border: 1.5px solid var(--border);
+      background: white;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--muted);
+    }
+
+    .chip:hover { border-color: var(--ink); color: var(--ink); }
+    .chip.selected { background: var(--ink); color: white; border-color: var(--ink); }
+    .joke-section .chip.selected { background: var(--rose); border-color: var(--rose); }
+    .poem-section .chip.selected { background: var(--violet); border-color: var(--violet); }
+
+    /* ── Button ── */
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-joke { background: var(--rose); color: white; }
+    .btn-joke:hover { background: #c44d6a; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(224,92,122,0.35); }
+
+    .btn-poem { background: var(--violet); color: white; }
+    .btn-poem:hover { background: #6a4daa; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124,92,191,0.35); }
+
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* ── Output ── */
+    .output-card {
+      background: var(--ink);
+      color: #f0ecff;
+      border-radius: 16px;
+      padding: 28px;
+      margin-top: 24px;
+      position: relative;
+      min-height: 120px;
+      display: none;
+    }
+
+    .output-card.visible { display: block; }
+
+    .output-card .accent-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .joke-out .accent-bar { background: var(--rose); }
+    .poem-out .accent-bar { background: linear-gradient(90deg, var(--violet), var(--mint)); }
+
+    .output-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.12rem;
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+
+    .output-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-copy, .btn-new {
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-copy { background: rgba(255,255,255,0.12); color: #e0d8ff; }
+    .btn-copy:hover { background: rgba(255,255,255,0.2); }
+    .btn-new { background: var(--gold); color: var(--ink); }
+    .btn-new:hover { background: #d49528; }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2.5px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── History ── */
+    .history-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 32px 0 12px;
+    }
+
+    .history-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .history-item {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: #333;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .history-item::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+    }
+
+    .history-item.joke-hist::before { background: var(--rose); }
+    .history-item.poem-hist::before { background: var(--violet); }
+    .history-item:hover { border-color: #aaa; }
+
+    .history-meta {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+
+    footer a { color: var(--violet); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── Responsive ── */
+    @media (max-width: 520px) {
+      header { flex-direction: column; gap: 6px; text-align: center; }
+      main { padding: 24px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Joke<span>Pen</span></div>
+  <div class="tagline">Laugh &amp; Verse — Powered by Claude AI</div>
+</header>
+
+<div class="tabs">
+  <button class="tab joke active" onclick="switchTab('joke')">😂 Joke Generator</button>
+  <button class="tab poem" onclick="switchTab('poem')">🖋️ Poem Writer</button>
+</div>
+
+<main>
+
+  <!-- JOKE SECTION -->
+  <div id="joke-section" class="section joke-section active">
+    <div class="card">
+      <div class="card-label">Pick your vibe</div>
+
+      <div class="field">
+        <label>Joke Category</label>
+        <div class="chips" id="joke-category">
+          <div class="chip selected" onclick="selectChip(this, 'joke-category')">Random</div>
+          <div class="chip" onclick="selectChip(this, 'joke-category')">Tech & Coding</div>
+          <div class="chip" onclick="selectChip(this, 'joke-category')">Science</div>
+          <div class="chip" onclick="selectChip(this, 'joke-category')">Dad Jokes</div>
+          <div class="chip" onclick="selectChip(this, 'joke-category')">Dark Humor</div>
+          <div class="chip" onclick="selectChip(this, 'joke-category')">Puns</div>
+          <div class="chip" onclick="selectChip(this, 'joke-category')">Office</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Style</label>
+        <div class="chips" id="joke-style">
+          <div class="chip selected" onclick="selectChip(this, 'joke-style')">One-liner</div>
+          <div class="chip" onclick="selectChip(this, 'joke-style')">Q&A Setup</div>
+          <div class="chip" onclick="selectChip(this, 'joke-style')">Story</div>
+          <div class="chip" onclick="selectChip(this, 'joke-style')">Roast</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Topic / Keyword <span style="font-weight:400;color:#aaa">(optional)</span></label>
+        <input type="text" id="joke-topic" placeholder="e.g. Python, coffee, Mondays…" />
+      </div>
+
+      <button class="btn btn-joke" id="joke-btn" onclick="generateJoke()">
+        <span id="joke-spinner" class="spinner"></span>
+        <span id="joke-btn-text">⚡ Generate Joke</span>
+      </button>
+    </div>
+
+    <div class="output-card joke-out" id="joke-output">
+      <div class="accent-bar"></div>
+      <div class="output-text" id="joke-text"></div>
+      <div class="output-actions">
+        <button class="btn-copy" onclick="copyText('joke-text')">📋 Copy</button>
+        <button class="btn-new" onclick="generateJoke()">🎲 Another</button>
+      </div>
+    </div>
+
+    <div id="joke-history-wrap" style="display:none">
+      <div class="history-label">Recent Jokes</div>
+      <div class="history-list" id="joke-history"></div>
+    </div>
+  </div>
+
+  <!-- POEM SECTION -->
+  <div id="poem-section" class="section poem-section">
+    <div class="card">
+      <div class="card-label">Compose a verse</div>
+
+      <div class="field">
+        <label>Poem Type</label>
+        <div class="chips" id="poem-type">
+          <div class="chip selected" onclick="selectChip(this, 'poem-type')">Free Verse</div>
+          <div class="chip" onclick="selectChip(this, 'poem-type')">Haiku</div>
+          <div class="chip" onclick="selectChip(this, 'poem-type')">Sonnet</div>
+          <div class="chip" onclick="selectChip(this, 'poem-type')">Limerick</div>
+          <div class="chip" onclick="selectChip(this, 'poem-type')">Ballad</div>
+          <div class="chip" onclick="selectChip(this, 'poem-type')">Acrostic</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Mood / Tone</label>
+        <div class="chips" id="poem-mood">
+          <div class="chip selected" onclick="selectChip(this, 'poem-mood')">Melancholic</div>
+          <div class="chip" onclick="selectChip(this, 'poem-mood')">Joyful</div>
+          <div class="chip" onclick="selectChip(this, 'poem-mood')">Romantic</div>
+          <div class="chip" onclick="selectChip(this, 'poem-mood')">Philosophical</div>
+          <div class="chip" onclick="selectChip(this, 'poem-mood')">Playful</div>
+          <div class="chip" onclick="selectChip(this, 'poem-mood')">Mysterious</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>About / Theme</label>
+        <textarea id="poem-topic" placeholder="e.g. the loneliness of late-night coding, monsoon rain, first heartbreak…"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Length</label>
+        <div class="chips" id="poem-length">
+          <div class="chip selected" onclick="selectChip(this, 'poem-length')">Short (4–6 lines)</div>
+          <div class="chip" onclick="selectChip(this, 'poem-length')">Medium (8–12 lines)</div>
+          <div class="chip" onclick="selectChip(this, 'poem-length')">Long (16+ lines)</div>
+        </div>
+      </div>
+
+      <button class="btn btn-poem" id="poem-btn" onclick="generatePoem()">
+        <span id="poem-spinner" class="spinner"></span>
+        <span id="poem-btn-text">✨ Write Poem</span>
+      </button>
+    </div>
+
+    <div class="output-card poem-out" id="poem-output">
+      <div class="accent-bar"></div>
+      <div class="output-text" id="poem-text"></div>
+      <div class="output-actions">
+        <button class="btn-copy" onclick="copyText('poem-text')">📋 Copy</button>
+        <button class="btn-new" onclick="generatePoem()">🎲 Another</button>
+      </div>
+    </div>
+
+    <div id="poem-history-wrap" style="display:none">
+      <div class="history-label">Recent Poems</div>
+      <div class="history-list" id="poem-history"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Built with ❤️ using <a href="https://www.anthropic.com" target="_blank">Claude AI</a> &nbsp;·&nbsp;
+  <a href="https://github.com" target="_blank">View on GitHub</a>
+</footer>
+
+<script>
+  // ── Tab switching ──
+  function switchTab(tab) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(tab + '-section').classList.add('active');
+    document.querySelector(`.tab.${tab}`).classList.add('active');
+  }
+
+  // ── Chip selection ──
+  function selectChip(el, groupId) {
+    document.querySelectorAll(`#${groupId} .chip`).forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function getSelected(groupId) {
+    const sel = document.querySelector(`#${groupId} .chip.selected`);
+    return sel ? sel.textContent.trim() : '';
+  }
+
+  // ── Joke Generator ──
+  const jokeHistory = [];
+  const poemHistory = [];
+
+  async function generateJoke() {
+    const category = getSelected('joke-category');
+    const style = getSelected('joke-style');
+    const topic = document.getElementById('joke-topic').value.trim();
+
+    const prompt = `You are a brilliant comedian. Write a single ${style} joke${topic ? ` about "${topic}"` : ''}. Category: ${category}. 
+Rules:
+- Just the joke, no intro or explanation
+- Keep it punchy and clever
+- No offensive or harmful content
+- Make it genuinely funny`;
+
+    setLoading('joke', true);
+    const result = await callClaude(prompt);
+    setLoading('joke', false);
+
+    if (result) {
+      document.getElementById('joke-text').textContent = result;
+      document.getElementById('joke-output').classList.add('visible');
+      addHistory('joke', result, `${category} · ${style}${topic ? ` · "${topic}"` : ''}`);
+    }
+  }
+
+  // ── Poem Writer ──
+  async function generatePoem() {
+    const type = getSelected('poem-type');
+    const mood = getSelected('poem-mood');
+    const topic = document.getElementById('poem-topic').value.trim() || 'the passage of time';
+    const length = getSelected('poem-length');
+
+    const prompt = `You are a gifted poet. Write a ${type} poem with a ${mood} tone about: ${topic}.
+Length: ${length}.
+Rules:
+- Only the poem itself, no title unless it's part of the poem
+- No explanation or intro
+- Use vivid, original imagery
+- Match the form strictly (haiku = 5-7-5, sonnet = 14 lines, limerick = AABBA rhyme, etc.)`;
+
+    setLoading('poem', true);
+    const result = await callClaude(prompt);
+    setLoading('poem', false);
+
+    if (result) {
+      document.getElementById('poem-text').textContent = result;
+      document.getElementById('poem-output').classList.add('visible');
+      addHistory('poem', result, `${type} · ${mood} · "${topic}"`);
+    }
+  }
+
+  // ── Claude API ──
+  async function callClaude(prompt) {
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      const data = await res.json();
+      if (data.content && data.content[0]) return data.content[0].text.trim();
+      return null;
+    } catch (err) {
+      console.error(err);
+      return '⚠️ Something went wrong. Please try again.';
+    }
+  }
+
+  // ── Loading state ──
+  function setLoading(type, loading) {
+    const btn = document.getElementById(`${type}-btn`);
+    const spinner = document.getElementById(`${type}-spinner`);
+    const text = document.getElementById(`${type}-btn-text`);
+    btn.disabled = loading;
+    spinner.style.display = loading ? 'block' : 'none';
+    text.textContent = loading
+      ? (type === 'joke' ? 'Crafting your joke…' : 'Writing your poem…')
+      : (type === 'joke' ? '⚡ Generate Joke' : '✨ Write Poem');
+  }
+
+  // ── History ──
+  function addHistory(type, text, meta) {
+    const arr = type === 'joke' ? jokeHistory : poemHistory;
+    arr.unshift({ text, meta });
+    if (arr.length > 5) arr.pop();
+    renderHistory(type);
+  }
+
+  function renderHistory(type) {
+    const arr = type === 'joke' ? jokeHistory : poemHistory;
+    const wrap = document.getElementById(`${type}-history-wrap`);
+    const list = document.getElementById(`${type}-history`);
+    wrap.style.display = arr.length ? 'block' : 'none';
+    list.innerHTML = arr.map((item, i) => `
+      <div class="history-item ${type}-hist" onclick="showHistoryItem('${type}', ${i})">
+        <div>${item.text.length > 120 ? item.text.slice(0, 120) + '…' : item.text}</div>
+        <div class="history-meta">${item.meta}</div>
+      </div>
+    `).join('');
+  }
+
+  function showHistoryItem(type, index) {
+    const arr = type === 'joke' ? jokeHistory : poemHistory;
+    const item = arr[index];
+    document.getElementById(`${type}-text`).textContent = item.text;
+    document.getElementById(`${type}-output`).classList.add('visible');
+    document.getElementById(`${type}-output`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // ── Copy ──
+  function copyText(id) {
+    const text = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target;
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy', 1800);
+    });
+  }
+</script>
+</body>
+</html>
