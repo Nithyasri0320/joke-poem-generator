@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JokePen – Laugh & Verse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink: #1a1a2e; --paper: #f7f4ef; --cream: #eee8dd; --gold: #e8a838;
+      --violet: #7c5cbf; --rose: #e05c7a; --mint: #3dbfa0; --card: #ffffff;
+      --border: #ddd8ce; --muted: #7a7468;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+    header { background: var(--ink); padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-family: 'Playfair Display', serif; font-size: 1.7rem; color: var(--gold); }
+    .logo span { color: #fff; font-style: italic; }
+    .tagline { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: #6b6880; letter-spacing: 1.5px; text-transform: uppercase; }
+    .tabs { display: flex; background: var(--cream); border-bottom: 2px solid var(--border); }
+    .tab { flex: 1; padding: 16px; font-size: 0.95rem; font-weight: 600; border: none; background: transparent; cursor: pointer; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .tab:hover { color: var(--ink); background: rgba(0,0,0,0.03); }
+    .tab.joke.active { color: var(--ink); border-bottom-color: var(--rose); }
+    .tab.poem.active { color: var(--ink); border-bottom-color: var(--violet); }
+    main { max-width: 760px; margin: 0 auto; padding: 36px 24px; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .card { background: var(--card); border: 1.5px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+    .card-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; }
+    .joke-section .card-label { color: var(--rose); }
+    .poem-section .card-label { color: var(--violet); }
+    .field { margin-bottom: 18px; }
+    label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; color: #444; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { padding: 6px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 500; border: 1.5px solid var(--border); background: white; cursor: pointer; transition: all 0.15s; color: var(--muted); }
+    .chip:hover { border-color: var(--ink); color: var(--ink); }
+    .joke-section .chip.selected { background: var(--rose); color: white; border-color: var(--rose); }
+    .poem-section .chip.selected { background: var(--violet); color: white; border-color: var(--violet); }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-joke { background: var(--rose); color: white; }
+    .btn-joke:hover { background: #c44d6a; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(224,92,122,0.35); }
+    .btn-poem { background: var(--violet); color: white; }
+    .btn-poem:hover { background: #6a4daa; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124,92,191,0.35); }
+    .btn:active { transform: translateY(0); }
+    .output-card { background: var(--ink); color: #f0ecff; border-radius: 16px; padding: 28px; margin-top: 24px; position: relative; display: none; }
+    .output-card.visible { display: block; }
+    .accent-bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; border-radius: 16px 16px 0 0; }
+    .joke-out .accent-bar { background: var(--rose); }
+    .poem-out .accent-bar { background: linear-gradient(90deg, var(--violet), var(--mint)); }
+    .output-text { font-family: 'Playfair Display', serif; font-size: 1.12rem; line-height: 1.85; white-space: pre-wrap; }
+    .output-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-copy, .btn-new { padding: 8px 18px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; border: none; cursor: pointer; transition: all 0.15s; }
+    .btn-copy { background: rgba(255,255,255,0.12); color: #e0d8ff; }
+    .btn-copy:hover { background: rgba(255,255,255,0.2); }
+    .btn-new { background: var(--gold); color: var(--ink); }
+    .btn-new:hover { background: #d49528; }
+    .category-badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; text-transform: uppercase; color: #9d93cc; margin-bottom: 12px; }
+    .history-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin: 32px 0 12px; }
+    .history-list { display: flex; flex-direction: column; gap: 10px; }
+    .history-item { background: white; border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 18px; font-size: 0.88rem; line-height: 1.55; color: #333; cursor: pointer; transition: border-color 0.15s; position: relative; overflow: hidden; }
+    .history-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+    .history-item.joke-hist::before { background: var(--rose); }
+    .history-item.poem-hist::before { background: var(--violet); }
+    .history-item:hover { border-color: #aaa; }
+    .history-meta { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); margin-top: 6px; }
+    footer { text-align: center; padding: 24px; font-size: 0.78rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 40px; }
+    footer a { color: var(--violet); text-decoration: none; }
+    @media (max-width: 520px) { header { flex-direction: column; gap: 6px; text-align: center; } main { padding: 24px 16px; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Joke<span>Pen</span></div>
+  <div class="tagline">Laugh &amp; Verse — No API Needed</div>
+</header>
+
+<div class="tabs">
+  <button class="tab joke active" onclick="switchTab('joke')">😂 Joke Generator</button>
+  <button class="tab poem" onclick="switchTab('poem')">🖋️ Poem Writer</button>
+</div>
+
+<main>
+
+  <!-- JOKE SECTION -->
+  <div id="joke-section" class="section joke-section active">
+    <div class="card">
+      <div class="card-label">Pick your vibe</div>
+      <div class="field">
+        <label>Category</label>
+        <div class="chips" id="joke-category">
+          <div class="chip selected" onclick="selectChip(this,'joke-category')">Random</div>
+          <div class="chip" onclick="selectChip(this,'joke-category')">Tech & Coding</div>
+          <div class="chip" onclick="selectChip(this,'joke-category')">Dad Jokes</div>
+          <div class="chip" onclick="selectChip(this,'joke-category')">Puns</div>
+          <div class="chip" onclick="selectChip(this,'joke-category')">Science</div>
+          <div class="chip" onclick="selectChip(this,'joke-category')">Office</div>
+        </div>
+      </div>
+      <button class="btn btn-joke" onclick="generateJoke()">⚡ Generate Joke</button>
+    </div>
+
+    <div class="output-card joke-out" id="joke-output">
+      <div class="accent-bar"></div>
+      <div class="category-badge" id="joke-badge"></div>
+      <div class="output-text" id="joke-text"></div>
+      <div class="output-actions">
+        <button class="btn-copy" onclick="copyText('joke-text')">📋 Copy</button>
+        <button class="btn-new" onclick="generateJoke()">🎲 Another</button>
+      </div>
+    </div>
+
+    <div id="joke-history-wrap" style="display:none">
+      <div class="history-label">Recent Jokes</div>
+      <div class="history-list" id="joke-history"></div>
+    </div>
+  </div>
+
+  <!-- POEM SECTION -->
+  <div id="poem-section" class="section poem-section">
+    <div class="card">
+      <div class="card-label">Choose your verse</div>
+      <div class="field">
+        <label>Poem Type</label>
+        <div class="chips" id="poem-type">
+          <div class="chip selected" onclick="selectChip(this,'poem-type')">Random</div>
+          <div class="chip" onclick="selectChip(this,'poem-type')">Haiku</div>
+          <div class="chip" onclick="selectChip(this,'poem-type')">Limerick</div>
+          <div class="chip" onclick="selectChip(this,'poem-type')">Romantic</div>
+          <div class="chip" onclick="selectChip(this,'poem-type')">Nature</div>
+          <div class="chip" onclick="selectChip(this,'poem-type')">Motivational</div>
+          <div class="chip" onclick="selectChip(this,'poem-type')">Sad</div>
+        </div>
+      </div>
+      <button class="btn btn-poem" onclick="generatePoem()">✨ Write Poem</button>
+    </div>
+
+    <div class="output-card poem-out" id="poem-output">
+      <div class="accent-bar"></div>
+      <div class="category-badge" id="poem-badge"></div>
+      <div class="output-text" id="poem-text"></div>
+      <div class="output-actions">
+        <button class="btn-copy" onclick="copyText('poem-text')">📋 Copy</button>
+        <button class="btn-new" onclick="generatePoem()">🎲 Another</button>
+      </div>
+    </div>
+
+    <div id="poem-history-wrap" style="display:none">
+      <div class="history-label">Recent Poems</div>
+      <div class="history-list" id="poem-history"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Built with ❤️ by <a href="https://github.com/Nithyasri0320" target="_blank">Nithyasri0320</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/Nithyasri0320/joke-poem-generator" target="_blank">View on GitHub</a>
+</footer>
+
+<script>
+const DATA = {
+  jokes: {
+    "Tech & Coding": [
+      "Why do programmers prefer dark mode?\nBecause light attracts bugs! 🐛",
+      "A SQL query walks into a bar, walks up to two tables and asks...\n'Can I JOIN you?' 😄",
+      "Why do Java developers wear glasses?\nBecause they don't C#! 👓",
+      "How many programmers does it take to change a light bulb?\nNone. That's a hardware problem.",
+      "Why did the developer go broke?\nBecause he used up all his cache! 💸",
+      "What do you call a programmer from Finland?\nNerdic. 🧊",
+      "Why was the JavaScript developer sad?\nBecause he didn't know how to 'null' his feelings.",
+      "A programmer's partner says: 'Go to the store, get a gallon of milk, and if they have eggs, get a dozen.'\nThe programmer comes back with 12 gallons of milk. 🥛",
+      "Why do Python programmers prefer snake_case?\nBecause they find camelCase hump-ty! 🐍",
+      "What's a computer's favourite snack?\nMicrochips! 🍟",
+      "Why did the developer quit his job?\nBecause he didn't get arrays! 📊",
+      "What did the HTML tag say to the other?\nI feel so div-ided from you. 💔"
+    ],
+    "Dad Jokes": [
+      "I told my wife she was drawing her eyebrows too high.\nShe looked surprised. 😮",
+      "What do you call cheese that isn't yours?\nNacho cheese! 🧀",
+      "Why can't you give Elsa a balloon?\nBecause she'll let it go! 🎈",
+      "I used to hate facial hair...\nbut then it grew on me. 🧔",
+      "Why don't scientists trust atoms?\nBecause they make up everything! ⚛️",
+      "What do you call a fake noodle?\nAn impasta! 🍝",
+      "Did you hear about the guy who invented Lifesavers?\nHe made a mint! 🍬",
+      "Why did the scarecrow win an award?\nBecause he was outstanding in his field! 🌾",
+      "I'm reading a book about anti-gravity.\nIt's impossible to put down! 📚",
+      "What do you call a sleeping dinosaur?\nA dino-snore! 🦕",
+      "Why did the math book look so sad?\nBecause it had too many problems. 📖",
+      "What do elves learn in school?\nThe elf-abet! 🧝"
+    ],
+    "Puns": [
+      "I'm on a seafood diet.\nI see food and I eat it! 🍔",
+      "Time flies like an arrow.\nFruit flies like a banana. 🍌",
+      "I used to be a banker,\nbut I lost interest. 💰",
+      "What do you call a bear with no teeth?\nA gummy bear! 🐻",
+      "I tried to write a joke about paper...\nbut it was tearable. 📄",
+      "Why did the bicycle fall over?\nBecause it was two-tired! 🚲",
+      "I asked the librarian if they had books about paranoia.\nShe whispered, 'They're right behind you!' 📚",
+      "What do you call a factory that makes okay products?\nA satisfactory! 🏭",
+      "Why did the golfer bring extra pants?\nIn case he got a hole in one! ⛳",
+      "I told a joke about construction.\nI'm still working on it. 🏗️"
+    ],
+    "Science": [
+      "Why can't you trust an atom?\nBecause they make up literally everything. ⚗️",
+      "What did the photon say when asked if it needed help with its luggage?\n'No thanks, I'm traveling light!' ☀️",
+      "A neutron walks into a bar and asks how much for a beer.\nBartender says 'For you, no charge.' ⚡",
+      "Why did the physics teacher break up with the biology teacher?\nThere was no chemistry! 🔬",
+      "What do you call a fish without eyes?\nA fsh. 🐟",
+      "Why did the chemist read the book on helium?\nHe couldn't put it down! He2 He2 He2! 😄",
+      "What is a physicist's favourite food?\nFission chips! 🍟",
+      "I have a new theory on inertia...\nbut it doesn't seem to be gaining momentum. 🌀"
+    ],
+    "Office": [
+      "My boss told me to have a good day.\nSo I went home. 🏠",
+      "Why did the employee get fired from the calendar factory?\nHe took a day off! 📅",
+      "I told my boss I needed a raise because three companies were after me.\nHe asked which ones. I said: 'Gas, electricity, and water!' 💡",
+      "Why do we tell actors to 'break a leg'?\nBecause every play has a cast! 🎭",
+      "The secret to a clean desk is a messy drawer. 🗂️",
+      "I asked my manager if I could leave early and he said 'Sure, as soon as you finish your 9-5.' ⏰",
+      "My colleague told me I had to stop acting like a flamingo.\nI had to put my foot down. 🦩",
+      "Why is it so hard to play cards in the jungle?\nToo many cheetahs! 🐆"
+    ]
+  },
+  poems: {
+    "Haiku": [
+      "Old pond,\nA frog jumps in —\nSound of water. 🐸",
+      "Cherry blossoms fall,\nSilently covering earth —\nSpring whispers goodbye. 🌸",
+      "Morning coffee steam,\nRises through the quiet air —\nDay begins again. ☕",
+      "Lines of code glow bright,\nFingers dance on keys at night —\nBug fixed. Peace at last. 💻",
+      "Rain on the window,\nEach drop a tiny story —\nThe earth drinks deeply. 🌧️",
+      "Empty cup of tea,\nWarm hands hold the memory —\nYou were just here. 🍵"
+    ],
+    "Limerick": [
+      "There once was a coder named Lee,\nWho wrote his whole app in just C,\n  It ran very fast,\n  But the memory crashed,\nAnd now it won't let him be free! 💻",
+      "A student who hated to study,\nFound all of his notebooks quite muddy,\n  He opened his book,\n  Took one single look,\nAnd used it to carry his buddy! 📚",
+      "There once was a man from Madras,\nWho sat on a big piece of glass,\n  He let out a yell,\n  As slowly he fell,\nAnd now he walks careful to class! 😄",
+      "A programmer worked through the night,\nTo get every unit test right,\n  At quarter past three,\n  He cried out with glee,\nThen noticed he'd left off a byte. 🌙"
+    ],
+    "Romantic": [
+      "In your eyes I found a universe,\nwhere every star spells out your name.\nIn the silence between heartbeats,\nyour laugh set my soul aflame.\n\nIf love were a language I could speak,\nevery word would be your face —\nthe way you tilt your head and think,\nthe way you fill an empty space. 💕",
+      "You are the poem I never planned to write,\nthe chapter I can't put down at night.\nEvery word you speak is a melody,\nevery glance a galaxy.\n\nMeet me where the sunset bleeds to gold,\nand let us write a story yet untold. 🌅",
+      "I fell in love the way rain falls —\nnot all at once, but steadily,\nuntil I was soaked through\nand couldn't remember dry. 🌧️❤️",
+      "Your name is a song\nI hum without thinking,\na warmth in my chest\nwhen the world starts shrinking.\n\nYou are my favourite kind of chaos,\nmy quietest kind of calm. 🌿"
+    ],
+    "Nature": [
+      "The forest breathes in silver light,\nwhere ancient oaks stand tall and wise.\nTheir roots drink deep from darkened earth,\ntheir branches brush the autumn skies.\n\nA single leaf lets go and falls,\nnot lost, but finally free —\nreturning home to where it started,\nbecoming part of what will be. 🍂",
+      "The ocean doesn't ask permission\nto kiss the shore and pull away.\nIt comes. It goes. It always returns.\nThe tide is just its way of saying:\n\nI am here.\nI am always here. 🌊",
+      "Rain writes poems on the window pane,\neach drop a letter, each streak a line.\nThe earth below reads every word\nand blooms in answer, divine. 🌱",
+      "Mountains don't rush to be tall.\nThey rise across a million years,\npatient as stone, as sure as dawn —\nteaching us to stand without fear. ⛰️"
+    ],
+    "Motivational": [
+      "You are not behind.\nYou are not too late.\nYou are exactly where the universe\nneeded you to be — today.\n\nEvery step you took that felt like falling\nwas teaching you to fly.\nKeep going. The sky is not the limit.\nThe sky is just the beginning. 🚀",
+      "Some days you bloom.\nSome days you just survive.\nBoth are brave.\nBoth count.\nBoth are you being alive. 🌻",
+      "The mountain does not care\nhow long it takes you to climb.\nIt only knows that you kept moving,\nand that, in itself, is sublime. ⛰️✨",
+      "You have survived every hard day\nlife has ever handed you.\nYour track record of getting through\nhard things is 100%.\n\nThat is not luck.\nThat is you. 💪"
+    ],
+    "Sad": [
+      "Some people leave\nlike seasons do —\nnot with a goodbye,\njust with a sudden cold\nthat tells you they are gone. 🍃",
+      "I kept your old messages\nlike pressed flowers in a book —\nstill beautiful,\nstill fragrant,\nbut no longer alive. 📖",
+      "The hardest part\nisn't missing you.\nIt's forgetting what it felt like\nnot to. 💔",
+      "Empty chairs\nspeak the loudest.\nSilence has a shape —\nit is exactly the size\nof you. 🪑"
+    ]
+  }
+};
+
+const jokeHistory = [];
+const poemHistory = [];
+
+function switchTab(tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(tab + '-section').classList.add('active');
+  document.querySelector('.tab.' + tab).classList.add('active');
+}
+
+function selectChip(el, groupId) {
+  document.querySelectorAll('#' + groupId + ' .chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function getSelected(groupId) {
+  const sel = document.querySelector('#' + groupId + ' .chip.selected');
+  return sel ? sel.textContent.trim() : '';
+}
+
+function getRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function generateJoke() {
+  let category = getSelected('joke-category');
+  let usedCategory = category;
+
+  let pool;
+  if (category === 'Random') {
+    const keys = Object.keys(DATA.jokes);
+    usedCategory = getRandom(keys);
+    pool = DATA.jokes[usedCategory];
+  } else {
+    pool = DATA.jokes[category] || DATA.jokes['Dad Jokes'];
+  }
+
+  const joke = getRandom(pool);
+  document.getElementById('joke-text').textContent = joke;
+  document.getElementById('joke-badge').textContent = usedCategory;
+  document.getElementById('joke-output').classList.add('visible');
+
+  addHistory('joke', joke, usedCategory);
+  document.getElementById('joke-output').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function generatePoem() {
+  let type = getSelected('poem-type');
+  let usedType = type;
+
+  let pool;
+  if (type === 'Random') {
+    const keys = Object.keys(DATA.poems);
+    usedType = getRandom(keys);
+    pool = DATA.poems[usedType];
+  } else {
+    pool = DATA.poems[type] || DATA.poems['Nature'];
+  }
+
+  const poem = getRandom(pool);
+  document.getElementById('poem-text').textContent = poem;
+  document.getElementById('poem-badge').textContent = usedType;
+  document.getElementById('poem-output').classList.add('visible');
+
+  addHistory('poem', poem, usedType);
+  document.getElementById('poem-output').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function addHistory(type, text, meta) {
+  const arr = type === 'joke' ? jokeHistory : poemHistory;
+  arr.unshift({ text, meta });
+  if (arr.length > 5) arr.pop();
+  renderHistory(type);
+}
+
+function renderHistory(type) {
+  const arr = type === 'joke' ? jokeHistory : poemHistory;
+  const wrap = document.getElementById(type + '-history-wrap');
+  const list = document.getElementById(type + '-history');
+  wrap.style.display = arr.length > 1 ? 'block' : 'none';
+  list.innerHTML = arr.slice(1).map((item, i) =>
+    '<div class="history-item ' + type + '-hist" onclick="showHistory(\'' + type + '\',' + (i+1) + ')">' +
+    '<div>' + (item.text.length > 100 ? item.text.slice(0,100) + '…' : item.text) + '</div>' +
+    '<div class="history-meta">' + item.meta + '</div></div>'
+  ).join('');
+}
+
+function showHistory(type, index) {
+  const arr = type === 'joke' ? jokeHistory : poemHistory;
+  const item = arr[index];
+  document.getElementById(type + '-text').textContent = item.text;
+  document.getElementById(type + '-badge').textContent = item.meta;
+  document.getElementById(type + '-output').classList.add('visible');
+}
+
+function copyText(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = orig, 1800);
+  });
+}
+</script>
+</body>
+</html>
